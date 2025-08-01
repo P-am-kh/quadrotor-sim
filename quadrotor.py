@@ -46,6 +46,31 @@ class Quadrotor:
         accel = thrust_world / self.mass + g
 
         # Update velocity and position (Euler integration)
+
         self.velocity += accel * dt
         self.position += self.velocity * dt
-        pass
+
+        # --- Angular acceleration (Euler's equations) ---
+        omega_cross_I_omega = np.cross(self.omega, self.inertia @ self.omega)
+        angular_accel = np.linalg.inv(self.inertia) @ (
+            torque_body - omega_cross_I_omega
+        )
+
+        # Update angular velocity
+        self.omega += angular_accel * dt
+
+        # Update orientation using angular velocity (Rodrigues formula)
+        omega_skew = self._skew(self.omega)
+        self.orientation += self.orientation @ omega_skew * dt
+        # Re-orthogonalize rotation matrix to prevent drift
+        self.orientation = self._orthonormalize(self.orientation)
+
+    def _skew(self, vec):
+        """Skew-symmetric matrix for cross product"""
+        x, y, z = vec
+        return np.array([[0, -z, y], [z, 0, -x], [-y, x, 0]])
+
+    def _orthonormalize(self, R):
+        """Orthonormalize a rotation matrix (Gram-Schmidt-style)"""
+        u, _, v = np.linalg.svd(R)
+        return u @ v
