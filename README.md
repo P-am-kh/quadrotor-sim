@@ -1,1 +1,1 @@
-Quadrotor Simulator - Work in Progress ⚠️
+Work in Progress ⚠️
