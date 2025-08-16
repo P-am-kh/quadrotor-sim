@@ -3,7 +3,7 @@
 
 from quadrotor import Quadrotor
 from controller import PIDController
-import matplotlib.pyplot as plt
+from plotter import altitude_plot
 
 
 def main():
@@ -29,7 +29,7 @@ def main():
         times.append(dt * step)
         quad_positions_z.append(state["position"][2])
 
-    plots(times, quad_positions_z)
+    altitude_plot(times, quad_positions_z)
 
 
 def inputs_from_user():
@@ -54,16 +54,6 @@ def inputs_from_user():
             break
 
     return mass, dt
-
-
-def plots(times, quad_positions_z):
-
-    plt.plot(times, quad_positions_z)
-    plt.xlabel("Time(s)")
-    plt.ylabel("Altitude(m)")
-    plt.title("Quadrotor Altitude Response")
-    plt.grid()
-    plt.show()
 
 
 if __name__ == "__main__":
