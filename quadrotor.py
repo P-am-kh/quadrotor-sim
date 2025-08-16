@@ -23,6 +23,21 @@ class Quadrotor:
         self.orientation = np.eye(3)  # Rotation matrix (body to world)
         self.omega = np.zeros(3)  # Angular velocity in body frame
 
+    @property
+    def state(self):
+        return {
+            "position": self.position,
+            "velocity": self.velocity,
+            "orientation": self.orientation,
+            "angular_omega": self.omega,
+        }
+
+    def update(self, control_input, dt):
+        thrust_body = control_input[:3]
+        torque_body = np.array([0.0, 0.0, control_input[3]])
+
+        return self.step(thrust_body, torque_body, dt)
+
     def reset(self):
         self.position[:] = 0
         self.velocity[:] = 0
@@ -64,6 +79,8 @@ class Quadrotor:
         self.orientation += self.orientation @ omega_skew * dt
         # Re-orthogonalize rotation matrix to prevent drift
         self.orientation = self._orthonormalize(self.orientation)
+
+        return self.state
 
     def _skew(self, vec):
         """Skew-symmetric matrix for cross product"""

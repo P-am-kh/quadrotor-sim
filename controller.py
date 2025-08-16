@@ -5,32 +5,30 @@ import numpy as np
 
 
 class PIDController:
-    def __init__(self, Kp, Ki, Kd):
-        self.Kp = np.array(Kp)
-        self.Ki = np.array(Ki)
-        self.Kd = np.array(Kd)
-        self.integral = np.zeros(3)
-        self.prev_error = np.zeros(3)
+    def __init__(self, Kp=1.0, Ki=0.0, Kd=0.0, target_altitude=10.0):
+        self.Kp = Kp
+        self.Ki = Ki
+        self.Kd = Kd
+        self.integral = 0.0
+        self.prev_error = 0.0
+        self.target_altitude = target_altitude
 
     def reset(self):
-        self.integral[:] = 0
-        self.prev_error[:] = 0
+        self.integral = 0.0
+        self.prev_error = 0.0
 
-    def compute(self, target, current, dt):
-        """
-        Compute PID output to reduce error between target and current value.
-        Inputs:
-            - target: desired value (3D)
-            - current: current value (3D)
-            - dt: time step
-        Output: control output (3D)
-        """
+    def update(self, state, dt):
+        """PID control for altitude only"""
+        current_altitude = state["position"][2]
+        error = self.target_altitude - current_altitude
 
-        error = target - current
+        # Integral & Derivative
         self.integral += error * dt
-        derivative = (error - self.prev_error) / dt
+        derivative = (error - self.prev_error) / dt if dt > 0 else 0.0
         self.prev_error = error
 
-        output = self.Kp * error + self.Kd * derivative + self.Ki * self.integral
+        # PID output (thrust)
+        thrust = self.Kp * error + self.Ki * self.integral + self.Kd * derivative
 
-        return output
+        # control vector = [roll, pitch, thrust, yaw]
+        return np.array([0.0, 0.0, thrust, 0.0])
